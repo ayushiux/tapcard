@@ -453,6 +453,32 @@
     .vcard-title { font-size: 14px; font-weight: 500; color: var(--text); display: block; }
     .vcard-sub { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
 
+    /* ── Copy link button on card ── */
+    .copy-link-row {
+      display: flex;
+      gap: 8px;
+    }
+    .copy-link-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px 14px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s, transform 0.1s;
+      background: var(--accent);
+      color: white;
+      border: 1px solid var(--accent);
+    }
+    .copy-link-btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+    .copy-link-btn:active { transform: scale(0.97); }
+    .copy-link-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
     /* ── Settings gear on card ── */
     .settings-btn {
       position: absolute;
@@ -697,9 +723,15 @@
           </button>
         </div>
 
-      </div>
+        <!-- Copy short link -->
+        <div class="copy-link-row" id="copyLinkRow">
+          <button class="copy-link-btn" id="copyLinkBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy link
+          </button>
+        </div>
 
-      <!-- Back Face (QR) -->
+      </div>
       <div class="card-back" id="cardBack">
         <button class="back-close" id="backClose" title="Back to card">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
@@ -1027,7 +1059,48 @@
       document.getElementById('createMode').classList.remove('hidden');
       setFooter('create');
       flipBack();
+      cachedShortUrl = '';
     });
+
+    // ── Copy link (auto-shortens via TinyURL) ────────────────────
+    let cachedShortUrl = '';
+
+    document.getElementById('copyLinkBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('copyLinkBtn');
+      const longUrl = window.location.href;
+
+      if (cachedShortUrl) {
+        copyText(cachedShortUrl);
+        showToast('Short link copied!');
+        return;
+      }
+
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Shortening...';
+      try {
+        const resp = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
+        if (!resp.ok) throw new Error();
+        cachedShortUrl = await resp.text();
+        copyText(cachedShortUrl);
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy link';
+        showToast('Short link copied!');
+      } catch {
+        copyText(longUrl);
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy link';
+        showToast('Link copied! (could not shorten)');
+      }
+    });
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      });
+    }
 
     function populateForm(data) {
       document.getElementById('fName').value = data.n || '';
