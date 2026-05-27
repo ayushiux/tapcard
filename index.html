@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>tapcard — Digital Business Card</title>
+
+  <meta property="og:title" content="tapcard — Digital Business Card">
+  <meta property="og:description" content="Create your free digital business card in seconds">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#F5F0EB">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F5F0EB;
+      --card: #FDFAF6;
+      --text: #1A1A1A;
+      --muted: #6B6B6B;
+      --accent: #C4A882;
+      --accent-dark: #A08860;
+      --border: rgba(196, 168, 130, 0.2);
+      --shadow: 0 8px 32px rgba(0,0,0,0.08);
+      --radius: 24px;
+      --red: #D9534F;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100dvh;
+      padding: 24px 20px 40px;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ── Create Mode ── */
+    .create-container {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+    .create-container.fade-out {
+      opacity: 0;
+      transform: scale(0.95);
+      pointer-events: none;
+    }
+
+    .create-brand {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: var(--text);
+      text-align: center;
+      margin: 16px 0 4px;
+      letter-spacing: -0.5px;
+    }
+    .create-brand span { color: var(--accent); }
+    .create-sub {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .create-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 28px 24px;
+      width: 100%;
+    }
+
+    .form-section {
+      margin-bottom: 24px;
+    }
+    .form-section:last-child { margin-bottom: 0; }
+
+    .form-section-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: formIn 0.4s ease forwards;
+    }
+    .form-group:nth-child(2) { animation-delay: 0.05s; }
+    .form-group:nth-child(3) { animation-delay: 0.10s; }
+    .form-group:nth-child(4) { animation-delay: 0.15s; }
+    .form-group:nth-child(5) { animation-delay: 0.20s; }
+    .form-group:nth-child(6) { animation-delay: 0.25s; }
+    .form-group:nth-child(7) { animation-delay: 0.30s; }
+    .form-group:nth-child(8) { animation-delay: 0.35s; }
+    .form-group:nth-child(9) { animation-delay: 0.40s; }
+    .form-group:nth-child(10) { animation-delay: 0.45s; }
+
+    @keyframes formIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .form-label .req { color: var(--red); margin-left: 2px; }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(196,168,130,0.15);
+    }
+    .form-input::placeholder { color: #bbb; }
+
+    .form-input.error {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(217,83,79,0.12);
+    }
+    .form-error {
+      font-size: 12px;
+      color: var(--red);
+      margin-top: 4px;
+      display: none;
+    }
+    .form-error.show { display: block; }
+
+    .linkedin-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .linkedin-row .form-input { flex: 1; }
+    .avatar-preview {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--bg);
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s;
+    }
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .avatar-preview .avatar-placeholder-sm {
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    .generate-btn {
+      width: 100%;
+      padding: 16px;
+      margin-top: 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: 0.3px;
+    }
+    .generate-btn:hover { background: var(--accent-dark); }
+    .generate-btn:active { transform: scale(0.97); }
+
+    /* ── 3D Card Flip ── */
+    .card-scene {
+      perspective: 1200px;
+      width: 100%;
+      max-width: 380px;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .card-scene.fade-in {
+      animation: sceneIn 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+    }
+    @keyframes sceneIn {
+      from { opacity: 0; transform: scale(0.92) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+    }
+    .card.flipped { transform: rotateY(180deg); }
+
+    .card-front, .card-back {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .card-front {
+      padding: 36px 28px 28px;
+      position: relative;
+    }
+
+    .card-back {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      transform: rotateY(180deg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 28px;
+      overflow: hidden;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      margin-bottom: 28px;
+    }
+
+    .avatar-wrap {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-bottom: 14px;
+      border: 3px solid var(--border);
+      box-shadow: 0 4px 16px rgba(196, 168, 130, 0.25);
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-placeholder { font-size: 28px; font-weight: 600; color: var(--accent); line-height: 1; }
+
+    .card-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      line-height: 1.15;
+      letter-spacing: -0.3px;
+    }
+    .card-title-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent-dark);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .card-tagline {
+      font-size: 14px;
+      color: var(--muted);
+      font-style: italic;
+      font-family: 'DM Serif Display', serif;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .card-location {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 0 20px;
+    }
+
+    /* ── Link rows ── */
+    .links { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+    .link-row {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .link-row:hover { background: rgba(196,168,130,0.12); border-color: var(--accent); }
+
+    .link-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--card); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .link-icon svg { width: 16px; height: 16px; }
+
+    .link-label { flex: 1; font-size: 14px; font-weight: 500; color: var(--text); }
+
+    .qr-toggle-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--card);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .qr-toggle-btn:hover { background: rgba(196,168,130,0.15); border-color: var(--accent); }
+    .qr-toggle-btn svg { width: 14px; height: 14px; color: var(--muted); }
+
+    .open-link {
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent); font-size: 16px; text-decoration: none; flex-shrink: 0;
+    }
+
+    /* ── Card Back ── */
+    .back-close {
+      position: absolute; top: 16px; left: 16px;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--bg); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted); transition: background 0.15s;
+    }
+    .back-close:hover { background: rgba(196,168,130,0.15); }
+    .back-close svg { width: 18px; height: 18px; }
+
+    .back-avatar {
+      width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+      border: 3px solid var(--border);
+      box-shadow: 0 4px 16px rgba(196,168,130,0.25);
+      background: var(--bg); margin-bottom: 8px;
+    }
+    .back-name {
+      font-family: 'DM Serif Display', serif; font-size: 20px;
+      color: var(--text); line-height: 1.2; margin-bottom: 2px;
+    }
+    .back-title-text {
+      font-size: 11px; font-weight: 500; color: var(--accent-dark);
+      text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 14px;
+    }
+    .back-platform {
+      font-size: 11px; font-weight: 500; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+    }
+    .back-qr {
+      background: white; border-radius: 14px; padding: 14px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 12px;
+    }
+    .card.flipped .back-qr { animation: qrPulse 2s ease-in-out 0.8s 1; }
+    @keyframes qrPulse {
+      0%   { box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+      50%  { box-shadow: 0 4px 32px rgba(196,168,130,0.35); }
+      100% { box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+    }
+    .back-qr canvas, .back-qr img { display: block; }
+    .back-hint {
+      font-size: 13px; color: var(--muted); text-align: center;
+      line-height: 1.4; margin-bottom: 14px;
+    }
+    .back-open {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 22px; background: var(--accent); color: white;
+      border-radius: 50px; font-size: 13px; font-weight: 500;
+      text-decoration: none; font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s;
+    }
+    .back-open:hover { background: var(--accent-dark); }
+
+    .card-back > * {
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34,1.4,0.64,1);
+    }
+    .card.flipped .card-back > *:nth-child(1) { opacity:1; transform:translateY(0); transition-delay:0.35s; }
+    .card.flipped .card-back > *:nth-child(2) { opacity:1; transform:translateY(0); transition-delay:0.40s; }
+    .card.flipped .card-back > *:nth-child(3) { opacity:1; transform:translateY(0); transition-delay:0.45s; }
+    .card.flipped .card-back > *:nth-child(4) { opacity:1; transform:translateY(0); transition-delay:0.50s; }
+    .card.flipped .card-back > *:nth-child(5) { opacity:1; transform:translateY(0); transition-delay:0.55s; }
+    .card.flipped .card-back > *:nth-child(6) { opacity:1; transform:translateY(0); transition-delay:0.60s; }
+    .card.flipped .card-back > *:nth-child(7) { opacity:1; transform:translateY(0); transition-delay:0.65s; }
+    .card.flipped .card-back > *:nth-child(8) { opacity:1; transform:translateY(0); transition-delay:0.70s; }
+
+    /* ── Save to Contacts ── */
+    .vcard-section { margin-bottom: 20px; }
+    .vcard-btn {
+      width: 100%; display: flex; align-items: center; gap: 12px;
+      padding: 13px 18px;
+      background: linear-gradient(135deg, rgba(196,168,130,0.15), rgba(196,168,130,0.05));
+      border: 1px solid var(--accent); border-radius: 50px;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .vcard-btn:active { transform: scale(0.97); }
+    .vcard-btn:hover { background: rgba(196,168,130,0.2); }
+    .vcard-icon {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--accent);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .vcard-icon svg { width: 16px; height: 16px; color: white; }
+    .vcard-text { flex: 1; text-align: left; }
+    .vcard-title { font-size: 14px; font-weight: 500; color: var(--text); display: block; }
+    .vcard-sub { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
+
+    /* ── Settings gear on card ── */
+    .settings-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: var(--muted);
+      opacity: 0.4;
+      transition: opacity 0.2s;
+      padding: 0;
+      z-index: 2;
+    }
+    .settings-btn:hover { opacity: 0.8; }
+    .settings-btn svg { width: 18px; height: 18px; }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 24px;
+      font-size: 12px;
+      color: var(--muted);
+      opacity: 0.5;
+      text-align: center;
+    }
+    .footer a {
+      color: var(--accent-dark);
+      text-decoration: none;
+      opacity: 1;
+    }
+    .footer a:hover { text-decoration: underline; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--text);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 1000;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Error state ── */
+    .error-container {
+      text-align: center;
+      padding: 40px 20px;
+      max-width: 380px;
+    }
+    .error-container h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    .error-container p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .error-container a {
+      display: inline-block;
+      padding: 12px 24px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ CREATE MODE ═══ -->
+  <div id="createMode" class="create-container hidden">
+    <div class="create-brand">tap<span>card</span></div>
+    <div class="create-sub">Create your digital business card in seconds</div>
+
+    <div class="create-card">
+      <div class="form-section">
+        <div class="form-section-title">About you</div>
+
+        <div class="form-group">
+          <label class="form-label">Name <span class="req">*</span></label>
+          <input class="form-input" id="fName" type="text" placeholder="Your full name" required>
+          <div class="form-error" id="fNameError">Name is required</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input class="form-input" id="fTitle" type="text" placeholder="e.g. Product Designer · AI & SaaS">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tagline</label>
+          <input class="form-input" id="fTagline" type="text" placeholder="A short quote or motto">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input class="form-input" id="fLocation" type="text" placeholder="e.g. SF Bay Area">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Your links</div>
+
+        <div class="form-group">
+          <label class="form-label">LinkedIn</label>
+          <div class="linkedin-row">
+            <input class="form-input" id="fLinkedin" type="url" placeholder="https://linkedin.com/in/yourprofile" inputmode="url">
+            <div class="avatar-preview" id="avatarPreview">
+              <span class="avatar-placeholder-sm">?</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Twitter / X</label>
+          <input class="form-input" id="fTwitter" type="url" placeholder="https://x.com/yourhandle" inputmode="url">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Instagram</label>
+          <input class="form-input" id="fInstagram" type="url" placeholder="https://instagram.com/yourhandle" inputmode="url">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Portfolio</label>
+          <input class="form-input" id="fPortfolio" type="url" placeholder="https://yourportfolio.com" inputmode="url">
+        </div>
+      </div>
+
+      <button class="generate-btn" id="generateBtn">Generate My Card</button>
+    </div>
+  </div>
+
+  <!-- ═══ VIEW MODE (card) ═══ -->
+  <div class="card-scene hidden" id="cardScene">
+    <div class="card" id="card">
+
+      <!-- Front Face -->
+      <div class="card-front">
+        <button class="settings-btn" id="settingsBtn" aria-label="Edit card" title="Edit card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+        <div class="hero">
+          <div class="avatar-wrap" id="heroAvatarWrap">
+            <img id="heroAvatar" alt="">
+          </div>
+          <div class="card-name" id="cardName"></div>
+          <div id="cardTitleWrap"><div class="card-title-text" id="cardTitle"></div></div>
+          <div id="cardTaglineWrap"><div class="card-tagline" id="cardTagline"></div></div>
+          <div id="cardLocationWrap"><div class="card-location" id="cardLocation"></div></div>
+        </div>
+
+        <div class="divider" id="cardDivider"></div>
+
+        <div class="links" id="linksList">
+          <!-- LinkedIn -->
+          <div class="link-row hidden" id="rowLinkedin" data-platform="LinkedIn" data-hint="Scan to connect on LinkedIn">
+            <span class="link-icon">
+              <svg viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </span>
+            <span class="link-label">LinkedIn</span>
+            <button class="qr-toggle-btn" title="Show QR">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zm3 3h3v3h-3zm0-6h3v3h-3z"/></svg>
+            </button>
+            <a class="open-link" href="#" target="_blank" rel="noopener">→</a>
+          </div>
+
+          <!-- Twitter / X -->
+          <div class="link-row hidden" id="rowTwitter" data-platform="Twitter / X" data-hint="Scan to follow on Twitter">
+            <span class="link-icon">
+              <svg viewBox="0 0 24 24" fill="#000"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </span>
+            <span class="link-label">Twitter / X</span>
+            <button class="qr-toggle-btn" title="Show QR">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zm3 3h3v3h-3zm0-6h3v3h-3z"/></svg>
+            </button>
+            <a class="open-link" href="#" target="_blank" rel="noopener">→</a>
+          </div>
+
+          <!-- Portfolio -->
+          <div class="link-row hidden" id="rowPortfolio" data-platform="Portfolio" data-hint="Scan to view my work">
+            <span class="link-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#C4A882" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </span>
+            <span class="link-label">Portfolio</span>
+            <button class="qr-toggle-btn" title="Show QR">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zm3 3h3v3h-3zm0-6h3v3h-3z"/></svg>
+            </button>
+            <a class="open-link" href="#" target="_blank" rel="noopener">→</a>
+          </div>
+
+          <!-- Instagram -->
+          <div class="link-row hidden" id="rowInstagram" data-platform="Instagram" data-hint="Scan to follow on Instagram">
+            <span class="link-icon">
+              <svg viewBox="0 0 24 24" fill="url(#ig-grad)">
+                <defs><linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f09433"/><stop offset="50%" stop-color="#dc2743"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs>
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+              </svg>
+            </span>
+            <span class="link-label">Instagram</span>
+            <button class="qr-toggle-btn" title="Show QR">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zm3 3h3v3h-3zm0-6h3v3h-3z"/></svg>
+            </button>
+            <a class="open-link" href="#" target="_blank" rel="noopener">→</a>
+          </div>
+        </div>
+
+        <!-- Save to Contacts -->
+        <div class="vcard-section" id="vcardSection">
+          <button class="vcard-btn" id="vcardBtn">
+            <span class="vcard-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <span class="vcard-text">
+              <span class="vcard-title">Save to Contacts</span>
+              <span class="vcard-sub">Tap to download contact file</span>
+            </span>
+            <button class="qr-toggle-btn" id="contactQrBtn" data-platform="Save Contact" data-hint="Scan with your camera — opens Add Contact instantly" title="Show contact QR" style="background:transparent;border-color:rgba(196,168,130,0.4);margin-left:4px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zm3 3h3v3h-3zm0-6h3v3h-3z"/></svg>
+            </button>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Back Face (QR) -->
+      <div class="card-back" id="cardBack">
+        <button class="back-close" id="backClose" title="Back to card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        </button>
+        <img class="back-avatar" id="backAvatar" alt="">
+        <span class="back-name" id="backName"></span>
+        <span class="back-title-text" id="backTitle"></span>
+        <span class="back-platform" id="backPlatform"></span>
+        <div class="back-qr" id="backQr"></div>
+        <span class="back-hint" id="backHint"></span>
+        <a class="back-open" id="backOpen" href="#" target="_blank" rel="noopener">Open ↗</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ ERROR STATE ═══ -->
+  <div class="error-container hidden" id="errorMode">
+    <h2>Hmm, this card link is broken</h2>
+    <p>The link may be corrupted or incomplete.</p>
+    <a id="errorCreateLink" href="#">Create a new card</a>
+  </div>
+
+  <div class="footer" id="footer"></div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Data Layer ────────────────────────────────────────────────
+    function encodeCardData(obj) {
+      const clean = {};
+      for (const [k, v] of Object.entries(obj)) {
+        if (v && typeof v === 'string' && v.trim()) clean[k] = v.trim();
+      }
+      clean.v = 1;
+      const json = JSON.stringify(clean);
+      const b64 = btoa(unescape(encodeURIComponent(json)));
+      return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function decodeCardData(encoded) {
+      try {
+        let b64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) b64 += '=';
+        const json = decodeURIComponent(escape(atob(b64)));
+        const data = JSON.parse(json);
+        if (!data.n || typeof data.n !== 'string') return null;
+        return data;
+      } catch { return null; }
+    }
+
+    function getMode() {
+      const params = new URLSearchParams(window.location.search);
+      const d = params.get('d');
+      if (!d) return { mode: 'create' };
+      const data = decodeCardData(d);
+      if (!data) return { mode: 'error' };
+      return { mode: 'view', data };
+    }
+
+    // ── Avatar helper ─────────────────────────────────────────────
+    function getAvatarUrl(data) {
+      if (data.p) return data.p;
+      if (data.li) {
+        const m = data.li.match(/linkedin\.com\/in\/([^/?#]+)/);
+        if (m) return `https://unavatar.io/linkedin/${m[1]}`;
+      }
+      return null;
+    }
+
+    function setAvatar(imgEl, wrapEl, data) {
+      const url = getAvatarUrl(data);
+      if (url) {
+        imgEl.src = url;
+        imgEl.alt = data.n;
+        imgEl.onerror = function() {
+          if (this.src.includes('unavatar') && data.p) { this.src = data.p; return; }
+          this.style.display = 'none';
+          const ph = document.createElement('span');
+          ph.className = 'avatar-placeholder';
+          ph.textContent = (data.n || '?')[0].toUpperCase();
+          wrapEl.appendChild(ph);
+        };
+        imgEl.style.display = '';
+      } else {
+        imgEl.style.display = 'none';
+        const existing = wrapEl.querySelector('.avatar-placeholder');
+        if (!existing) {
+          const ph = document.createElement('span');
+          ph.className = 'avatar-placeholder';
+          ph.textContent = (data.n || '?')[0].toUpperCase();
+          wrapEl.appendChild(ph);
+        }
+      }
+    }
+
+    // ── Link row mapping ──────────────────────────────────────────
+    const LINK_MAP = {
+      li:  { rowId: 'rowLinkedin',  label: 'LinkedIn' },
+      tw:  { rowId: 'rowTwitter',   label: 'Twitter / X' },
+      pf:  { rowId: 'rowPortfolio', label: 'Portfolio' },
+      ig:  { rowId: 'rowInstagram', label: 'Instagram' },
+    };
+
+    // ── Render Card ───────────────────────────────────────────────
+    let currentData = null;
+
+    function renderCard(data) {
+      currentData = data;
+
+      // Hero
+      document.getElementById('cardName').textContent = data.n;
+      setAvatar(document.getElementById('heroAvatar'), document.getElementById('heroAvatarWrap'), data);
+
+      // Title, tagline, location — hide if empty
+      const titleWrap = document.getElementById('cardTitleWrap');
+      const taglineWrap = document.getElementById('cardTaglineWrap');
+      const locationWrap = document.getElementById('cardLocationWrap');
+
+      if (data.t) { document.getElementById('cardTitle').textContent = data.t; titleWrap.classList.remove('hidden'); }
+      else titleWrap.classList.add('hidden');
+
+      if (data.g) { document.getElementById('cardTagline').textContent = `"${data.g}"`; taglineWrap.classList.remove('hidden'); }
+      else taglineWrap.classList.add('hidden');
+
+      if (data.l) { document.getElementById('cardLocation').textContent = `📍 ${data.l}`; locationWrap.classList.remove('hidden'); }
+      else locationWrap.classList.add('hidden');
+
+      // Links
+      let hasAnyLink = false;
+      for (const [key, { rowId }] of Object.entries(LINK_MAP)) {
+        const row = document.getElementById(rowId);
+        if (data[key]) {
+          row.classList.remove('hidden');
+          row.querySelector('.open-link').href = data[key];
+          hasAnyLink = true;
+        } else {
+          row.classList.add('hidden');
+        }
+      }
+      document.getElementById('cardDivider').classList.toggle('hidden', !hasAnyLink);
+
+      // Back face
+      document.getElementById('backName').textContent = data.n;
+      document.getElementById('backTitle').textContent = data.t || '';
+      setAvatar(document.getElementById('backAvatar'), document.getElementById('backAvatar').parentElement, data);
+
+      // OG tags
+      document.title = `${data.n}${data.t ? ' — ' + data.t : ''} | tapcard`;
+
+      // Bind link row clicks
+      bindLinkRows();
+    }
+
+    // ── Card flip ─────────────────────────────────────────────────
+    const card = document.getElementById('card');
+    const backQr = document.getElementById('backQr');
+    const backPlatform = document.getElementById('backPlatform');
+    const backHint = document.getElementById('backHint');
+    const backOpen = document.getElementById('backOpen');
+    let activeQR = null;
+
+    function flipToQR(platform, url, hint, rawData) {
+      backQr.innerHTML = '';
+      if (activeQR) { activeQR.clear(); activeQR = null; }
+      backPlatform.textContent = platform;
+      backHint.textContent = hint;
+      if (url) { backOpen.href = url; backOpen.style.display = ''; }
+      else { backOpen.style.display = 'none'; }
+      activeQR = new QRCode(backQr, {
+        text: rawData || url,
+        width: 200, height: 200,
+        colorDark: '#1A1A1A', colorLight: '#FFFFFF',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      card.classList.add('flipped');
+    }
+
+    function flipBack() { card.classList.remove('flipped'); }
+
+    document.getElementById('backClose').addEventListener('click', flipBack);
+
+    function bindLinkRows() {
+      document.querySelectorAll('.link-row:not(.hidden)').forEach(row => {
+        row.onclick = (e) => {
+          if (e.target.closest('.open-link')) return;
+          flipToQR(row.dataset.platform, row.querySelector('.open-link').href, row.dataset.hint);
+        };
+      });
+
+      document.getElementById('contactQrBtn').onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        flipToQR('Save Contact', null, 'Scan with your camera — opens Add Contact instantly', buildVcard());
+      };
+    }
+
+    // ── vCard ─────────────────────────────────────────────────────
+    function buildVcard() {
+      if (!currentData) return '';
+      const d = currentData;
+      const lines = ['BEGIN:VCARD', 'VERSION:3.0'];
+      lines.push(`FN:${d.n}`);
+      const parts = d.n.split(' ');
+      lines.push(`N:${parts.slice(1).join(' ')};${parts[0]};;;`);
+      if (d.t) lines.push(`TITLE:${d.t}`);
+      if (d.pf) lines.push(`URL;type=WORK:${d.pf}`);
+      if (d.li) {
+        const m = d.li.match(/linkedin\.com\/in\/([^/?#]+)/);
+        lines.push(`X-SOCIALPROFILE;type=linkedin;x-user=${m ? m[1] : ''}:${d.li}`);
+      }
+      if (d.tw) {
+        const m = d.tw.match(/(?:x|twitter)\.com\/([^/?#]+)/);
+        lines.push(`X-SOCIALPROFILE;type=twitter;x-user=${m ? m[1] : ''}:${d.tw}`);
+      }
+      if (d.ig) {
+        const m = d.ig.match(/instagram\.com\/([^/?#]+)/);
+        lines.push(`X-SOCIALPROFILE;type=instagram;x-user=${m ? m[1] : ''}:${d.ig}`);
+      }
+      if (d.t && d.l) lines.push(`NOTE:${d.t} · ${d.l}`);
+      lines.push('END:VCARD');
+      return lines.join('\r\n');
+    }
+
+    document.getElementById('vcardBtn').addEventListener('click', (e) => {
+      if (e.target.closest('#contactQrBtn')) return;
+      const vc = buildVcard();
+      if (!vc) return;
+      const blob = new Blob([vc], { type: 'text/vcard' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const slug = (currentData.n || 'contact').toLowerCase().replace(/\s+/g, '-');
+      a.download = `${slug}.vcf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Contact file downloaded!');
+    });
+
+    // ── Toast ─────────────────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    // ── Create Mode ───────────────────────────────────────────────
+    const fLinkedin = document.getElementById('fLinkedin');
+    const avatarPreview = document.getElementById('avatarPreview');
+
+    fLinkedin.addEventListener('blur', () => {
+      const val = fLinkedin.value.trim();
+      const m = val.match(/linkedin\.com\/in\/([^/?#]+)/);
+      if (m) {
+        avatarPreview.innerHTML = `<img src="https://unavatar.io/linkedin/${m[1]}" alt="" onerror="this.parentElement.innerHTML='<span class=\\'avatar-placeholder-sm\\'>?</span>'">`;
+      } else {
+        avatarPreview.innerHTML = '<span class="avatar-placeholder-sm">?</span>';
+      }
+    });
+
+    let generatedUrl = '';
+
+    document.getElementById('generateBtn').addEventListener('click', () => {
+      const name = document.getElementById('fName').value.trim();
+      const nameInput = document.getElementById('fName');
+      const nameError = document.getElementById('fNameError');
+
+      if (!name) {
+        nameInput.classList.add('error');
+        nameError.classList.add('show');
+        nameInput.focus();
+        return;
+      }
+      nameInput.classList.remove('error');
+      nameError.classList.remove('show');
+
+      const data = { n: name };
+      const title = document.getElementById('fTitle').value.trim();
+      const tagline = document.getElementById('fTagline').value.trim();
+      const loc = document.getElementById('fLocation').value.trim();
+      const li = fLinkedin.value.trim();
+      const tw = document.getElementById('fTwitter').value.trim();
+      const ig = document.getElementById('fInstagram').value.trim();
+      const pf = document.getElementById('fPortfolio').value.trim();
+
+      if (title) data.t = title;
+      if (tagline) data.g = tagline;
+      if (loc) data.l = loc;
+      if (li) data.li = li;
+      if (tw) data.tw = tw;
+      if (ig) data.ig = ig;
+      if (pf) data.pf = pf;
+
+      const encoded = encodeCardData(data);
+      generatedUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?d=${encoded}`;
+
+      // Transition: form out, card in
+      const createEl = document.getElementById('createMode');
+      const cardScene = document.getElementById('cardScene');
+
+      createEl.classList.add('fade-out');
+      setTimeout(() => {
+        createEl.classList.add('hidden');
+        createEl.classList.remove('fade-out');
+
+        renderCard(data);
+        cardScene.classList.remove('hidden');
+        cardScene.classList.add('fade-in');
+        setTimeout(() => cardScene.classList.remove('fade-in'), 500);
+
+        // Update browser URL without reload
+        window.history.replaceState(null, '', generatedUrl);
+
+        setFooter('preview');
+      }, 350);
+    });
+
+    // ── Settings button (edit card) ──────────────────────────────
+    document.getElementById('settingsBtn').addEventListener('click', () => {
+      if (!currentData) return;
+      populateForm(currentData);
+      document.getElementById('cardScene').classList.add('hidden');
+      document.getElementById('createMode').classList.remove('hidden');
+      setFooter('create');
+      flipBack();
+    });
+
+    function populateForm(data) {
+      document.getElementById('fName').value = data.n || '';
+      document.getElementById('fTitle').value = data.t || '';
+      document.getElementById('fTagline').value = data.g || '';
+      document.getElementById('fLocation').value = data.l || '';
+      document.getElementById('fLinkedin').value = data.li || '';
+      document.getElementById('fTwitter').value = data.tw || '';
+      document.getElementById('fInstagram').value = data.ig || '';
+      document.getElementById('fPortfolio').value = data.pf || '';
+      fLinkedin.dispatchEvent(new Event('blur'));
+    }
+
+    // ── Footer ────────────────────────────────────────────────────
+    function setFooter(mode) {
+      const footer = document.getElementById('footer');
+      const baseUrl = window.location.pathname;
+      if (mode === 'view') {
+        footer.innerHTML = `Made with ✦ · <a href="${baseUrl}">Create yours →</a>`;
+      } else if (mode === 'preview') {
+        footer.innerHTML = `Made with ✦ tapcard`;
+      } else {
+        footer.innerHTML = `tapcard · free digital business cards`;
+      }
+    }
+
+    // ── Init ──────────────────────────────────────────────────────
+    function initApp() {
+      const { mode, data } = getMode();
+
+      if (mode === 'view') {
+        document.getElementById('createMode').classList.add('hidden');
+        document.getElementById('cardScene').classList.remove('hidden');
+        renderCard(data);
+        setFooter('view');
+      } else if (mode === 'error') {
+        document.getElementById('errorMode').classList.remove('hidden');
+        document.getElementById('errorCreateLink').href = window.location.pathname;
+        setFooter('create');
+      } else {
+        document.getElementById('createMode').classList.remove('hidden');
+        setFooter('create');
+      }
+    }
+
+    // Fix: the generate handler shadows `location` with the form variable
+    // Already handled by using window.location explicitly in generatedUrl
+
+    initApp();
+  </script>
+</body>
+</html>
