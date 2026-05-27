@@ -16,6 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -761,15 +762,30 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // ── Data Layer ────────────────────────────────────────────────
+    // ── Data Layer (compressed with pako deflate) ──────────────────
     function encodeCardData(obj) {
       const clean = {};
       for (const [k, v] of Object.entries(obj)) {
         if (v && typeof v === 'string' && v.trim()) clean[k] = v.trim();
       }
       clean.v = 1;
+
+      // Strip common URL prefixes to save space
+      const prefixes = { 'https://www.': '~w', 'https://': '~s', 'http://': '~h' };
+      for (const key of ['li', 'tw', 'ig', 'pf', 'p']) {
+        if (clean[key]) {
+          for (const [prefix, token] of Object.entries(prefixes)) {
+            if (clean[key].startsWith(prefix)) {
+              clean[key] = token + clean[key].slice(prefix.length);
+              break;
+            }
+          }
+        }
+      }
+
       const json = JSON.stringify(clean);
-      const b64 = btoa(unescape(encodeURIComponent(json)));
+      const compressed = pako.deflateRaw(new TextEncoder().encode(json));
+      const b64 = btoa(String.fromCharCode(...compressed));
       return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
 
@@ -777,11 +793,35 @@
       try {
         let b64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
         while (b64.length % 4) b64 += '=';
-        const json = decodeURIComponent(escape(atob(b64)));
+        const binary = atob(b64);
+
+        let json;
+        try {
+          const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+          json = new TextDecoder().decode(pako.inflateRaw(bytes));
+        } catch {
+          json = decodeURIComponent(escape(binary));
+        }
+
         const data = JSON.parse(json);
         if (!data.n || typeof data.n !== 'string') return null;
+
+        // Restore URL prefixes
+        const tokens = { '~w': 'https://www.', '~s': 'https://', '~h': 'http://' };
+        for (const key of ['li', 'tw', 'ig', 'pf', 'p']) {
+          if (data[key]) {
+            for (const [token, prefix] of Object.entries(tokens)) {
+              if (data[key].startsWith(token)) {
+                data[key] = prefix + data[key].slice(2);
+                break;
+              }
+            }
+          }
+        }
+
         return data;
       } catch { return null; }
+    }
     }
 
     function getMode() {
@@ -1059,35 +1099,12 @@
       document.getElementById('createMode').classList.remove('hidden');
       setFooter('create');
       flipBack();
-      cachedShortUrl = '';
     });
 
-    // ── Copy link (auto-shortens via TinyURL) ────────────────────
-    let cachedShortUrl = '';
-
-    document.getElementById('copyLinkBtn').addEventListener('click', async () => {
-      const btn = document.getElementById('copyLinkBtn');
-      const longUrl = window.location.href;
-
-      if (cachedShortUrl) {
-        copyText(cachedShortUrl);
-        showToast('Short link copied!');
-        return;
-      }
-
-      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Shortening...';
-      try {
-        const resp = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
-        if (!resp.ok) throw new Error();
-        cachedShortUrl = await resp.text();
-        copyText(cachedShortUrl);
-        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy link';
-        showToast('Short link copied!');
-      } catch {
-        copyText(longUrl);
-        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy link';
-        showToast('Link copied! (could not shorten)');
-      }
+    // ── Copy link ─────────────────────────────────────────────────
+    document.getElementById('copyLinkBtn').addEventListener('click', () => {
+      copyText(window.location.href);
+      showToast('Link copied!');
     });
 
     function copyText(text) {
