@@ -799,7 +799,7 @@
         try {
           const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
           json = new TextDecoder().decode(pako.inflateRaw(bytes));
-        } catch {
+        } catch(e) {
           json = decodeURIComponent(escape(binary));
         }
 
@@ -820,7 +820,7 @@
         }
 
         return data;
-      } catch { return null; }
+      } catch(e) { return null; }
     }
 
     function getMode() {
