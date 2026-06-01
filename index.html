@@ -186,23 +186,25 @@
     .form-error.show { display: block; }
 
     .linkedin-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      position: relative;
     }
-    .linkedin-row .form-input { flex: 1; }
+    .linkedin-row .form-input { width: 100%; padding-right: 52px; }
     .avatar-preview {
-      width: 44px;
-      height: 44px;
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       border: 2px solid transparent;
       background: transparent;
       overflow: hidden;
-      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: border-color 0.2s, background 0.2s;
+      pointer-events: none;
     }
     .avatar-preview:has(img) {
       border-color: var(--border);
