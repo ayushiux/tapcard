@@ -280,13 +280,15 @@
     .card-back {
       position: absolute;
       top: 0; left: 0;
-      width: 100%; height: 100%;
+      width: 100%;
+      min-height: 100%;
       transform: rotateY(180deg);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 32px 28px;
+      padding: 24px 20px 28px;
+      overflow: hidden;
       overflow: hidden;
     }
 
@@ -415,38 +417,38 @@
     .back-close svg { width: 18px; height: 18px; }
 
     .back-avatar {
-      width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+      width: 52px; height: 52px; border-radius: 50%; object-fit: cover;
       border: 3px solid var(--qr-color, var(--border));
       box-shadow: 0 0 0 3px var(--qr-color-alpha, rgba(196,168,130,0.15)), 0 4px 16px rgba(0,0,0,0.1);
-      background: var(--bg); margin-bottom: 8px;
+      background: var(--bg); margin-bottom: 6px;
       transition: border-color 0.3s, box-shadow 0.3s;
     }
     .back-name {
-      font-family: 'DM Serif Display', serif; font-size: 20px;
+      font-family: 'DM Serif Display', serif; font-size: 18px;
       color: var(--text); line-height: 1.2; margin-bottom: 2px;
     }
     .back-title-text {
-      font-size: 11px; font-weight: 500; color: var(--accent-dark);
-      text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 14px;
+      font-size: 10px; font-weight: 500; color: var(--accent-dark);
+      text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px;
     }
     .back-platform-icon {
-      width: 48px; height: 48px; border-radius: 14px;
+      width: 40px; height: 40px; border-radius: 12px;
       background: white;
       display: flex; align-items: center; justify-content: center;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.10);
       transition: background 0.3s;
     }
-    .back-platform-icon svg { width: 26px; height: 26px; }
+    .back-platform-icon svg { width: 22px; height: 22px; }
 
     .back-platform {
       font-size: 11px; font-weight: 600; color: var(--qr-color, var(--accent-dark));
-      text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 12px;
+      text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px;
       transition: color 0.3s;
     }
     .back-qr {
-      border-radius: 20px; padding: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 12px;
+      border-radius: 16px; padding: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 8px;
       background: var(--qr-bg, #ffffff);
       transition: background 0.35s, box-shadow 0.3s;
     }
@@ -458,8 +460,8 @@
     }
     .back-qr canvas, .back-qr img { display: block; }
     .back-hint {
-      font-size: 13px; color: var(--muted); text-align: center;
-      line-height: 1.4; margin-bottom: 14px;
+      font-size: 12px; color: var(--muted); text-align: center;
+      line-height: 1.4; margin-bottom: 10px;
     }
     .back-open {
       display: inline-flex; align-items: center; gap: 6px;
@@ -530,29 +532,6 @@
     .copy-link-btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
     .copy-link-btn:active { transform: scale(0.97); }
     .copy-link-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-    /* ── Back button (left) on card ── */
-    .back-btn {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      width: 32px;
-      height: 32px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      color: var(--muted);
-      opacity: 0.4;
-      transition: opacity 0.2s;
-      padding: 0;
-      z-index: 2;
-    }
-    .back-btn:hover { opacity: 0.8; }
-    .back-btn svg { width: 18px; height: 18px; }
 
     /* ── Settings gear on card ── */
     .settings-btn {
@@ -717,9 +696,6 @@
 
       <!-- Front Face -->
       <div class="card-front">
-        <button class="back-btn" id="backToEditBtn" aria-label="Back to edit" title="Back to edit">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-        </button>
         <button class="settings-btn" id="settingsBtn" aria-label="Edit card" title="Edit card">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"/>
@@ -1072,7 +1048,7 @@
       // QR dots always dark for readability
       activeQR = new QRCode(backQr, {
         text: rawData || url,
-        width: 200, height: 200,
+        width: 180, height: 180,
         colorDark: '#1A1A1A', colorLight: 'transparent',
         correctLevel: QRCode.CorrectLevel.M
       });
@@ -1217,16 +1193,6 @@
 
         setFooter('preview');
       }, 350);
-    });
-
-    // ── Back button (go back to edit form) ──────────────────────
-    document.getElementById('backToEditBtn').addEventListener('click', () => {
-      if (!currentData) return;
-      populateForm(currentData);
-      document.getElementById('cardScene').classList.add('hidden');
-      document.getElementById('createMode').classList.remove('hidden');
-      setFooter('create');
-      flipBack();
     });
 
     // ── Settings button (edit card) ──────────────────────────────
