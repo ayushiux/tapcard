@@ -289,6 +289,7 @@
       justify-content: center;
       padding: 24px 20px 28px;
       overflow: hidden;
+      cursor: pointer;
       overflow: hidden;
     }
 
@@ -406,16 +407,6 @@
     }
 
     /* ── Card Back ── */
-    .back-close {
-      position: absolute; top: 16px; left: 16px;
-      width: 36px; height: 36px; border-radius: 50%;
-      background: var(--bg); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: var(--muted); transition: background 0.15s;
-    }
-    .back-close:hover { background: rgba(196,168,130,0.15); }
-    .back-close svg { width: 18px; height: 18px; }
-
     .back-avatar {
       width: 52px; height: 52px; border-radius: 50%; object-fit: cover;
       border: 3px solid var(--qr-color, var(--border));
@@ -802,9 +793,6 @@
 
       </div>
       <div class="card-back" id="cardBack">
-        <button class="back-close" id="backClose" title="Back to card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-        </button>
         <img class="back-avatar" id="backAvatar" alt="">
         <span class="back-name" id="backName"></span>
         <span class="back-title-text" id="backTitle"></span>
@@ -1061,7 +1049,7 @@
       cardBack.style.background = '';
     }
 
-    document.getElementById('backClose').addEventListener('click', flipBack);
+    document.getElementById('cardBack').addEventListener('click', flipBack);
 
     function bindLinkRows() {
       document.querySelectorAll('.link-row:not(.hidden)').forEach(row => {
