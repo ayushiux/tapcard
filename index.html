@@ -1044,14 +1044,20 @@
       backHint.textContent = hint;
       if (url) { backOpen.href = url; backOpen.style.display = ''; }
       else { backOpen.style.display = 'none'; }
-      // QR dots always dark for readability
-      activeQR = new QRCode(backQr, {
-        text: rawData || url,
-        width: 180, height: 180,
-        colorDark: '#1A1A1A', colorLight: 'transparent',
-        correctLevel: QRCode.CorrectLevel.M
-      });
+
+      // Flip first — QR renders after card is visible
       card.classList.add('flipped');
+
+      try {
+        activeQR = new QRCode(backQr, {
+          text: rawData || url,
+          width: 180, height: 180,
+          colorDark: '#1A1A1A', colorLight: brand.bg,
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch(e) {
+        backQr.innerHTML = '<p style="font-size:12px;color:#999;padding:20px;">QR unavailable</p>';
+      }
     }
 
     function flipBack() {
