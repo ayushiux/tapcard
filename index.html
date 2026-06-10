@@ -1001,7 +1001,6 @@
     // ── Card flip ─────────────────────────────────────────────────
     const card = document.getElementById('card');
     const backQr = document.getElementById('backQr');
-    const backPlatform = document.getElementById('backPlatform');
     const backHint = document.getElementById('backHint');
     const backOpen = document.getElementById('backOpen');
     let activeQR = null;
@@ -1040,7 +1039,6 @@
       const iconEl = document.getElementById('backPlatformIcon');
       iconEl.innerHTML = PLATFORM_ICONS[platform] || '';
 
-      backPlatform.textContent = platform;
       backHint.textContent = hint;
       if (url) { backOpen.href = url; backOpen.style.display = ''; }
       else { backOpen.style.display = 'none'; }
